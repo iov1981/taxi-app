@@ -36,11 +36,11 @@ let selectedTime = "now";
 let selectedPayment = "cash";
 let sendingOrder = false;
 
-// Бесплатный ключ Geoapify для обратного геокодирования
+// API ключ Geoapify для GPS-геокодирования
 const GEOAPIFY_API_KEY = "f5f59fa0fcfb46ac911a300d8cfbdff6";
 
 // ==========================================
-// РАСЧЁТ ОРИЕНТИРОВОЧНОЙ СТОИМОСТИ
+// РАСЧЁТ СТОИМОСТИ И ДИСТАНЦИИ
 // ==========================================
 
 function calculatePrice(distanceKm, hasChildChair = false) {
@@ -74,19 +74,19 @@ function estimateApproxDistance(fromText, toText) {
     const cleanFrom = fromText.toLowerCase().trim();
     const cleanTo = toText.toLowerCase().trim();
 
-    // Города и районные центры области
+    // Города и райцентры Пензенской области
     const towns = [
         "кузнецк", "заречный", "каменка", "сердобск", "нижний ломов",
         "никольск", "белинский", "городище", "мокшан", "лунино",
-        "земетчино", "бессоновка", "пыркино", "засечное", "спутник"
+        "земетчино", "бессоновка", "пыркино", "засечное", "спутник", "шемышейка"
     ];
 
     const isIntercity = towns.some(t => cleanFrom.includes(t) || cleanTo.includes(t));
     if (isIntercity) {
-        return 45.0; // Средняя оценка дистанции для поездок по области
+        return 45.0; // Средняя дистанция поездки по области
     }
 
-    // Средний километраж городской поездки по Пензе
+    // Средняя длина поездки по городу Пенза
     return 5.5;
 }
 
@@ -96,6 +96,7 @@ function updateEstimateDisplay() {
     const fromVal = fromInput.value.trim();
     const toVal = toInput.value.trim();
 
+    // Показываем плашку только если оба адреса заполнены (от 3 букв)
     if (fromVal.length >= 3 && toVal.length >= 3) {
         const hasChildChair = commentInput.value.toLowerCase().includes("кресл");
         const dist = estimateApproxDistance(fromVal, toVal);
@@ -113,7 +114,7 @@ function updateEstimateDisplay() {
 }
 
 // ==========================================
-// ГЕОЛОКАЦИЯ (HTML5 GPS + Geoapify Reverse)
+// ОПРЕДЕЛЕНИЕ МЕСТОПОЛОЖЕНИЯ (GPS)
 // ==========================================
 async function getLocation() {
     if (!navigator.geolocation) {
@@ -195,7 +196,7 @@ if (locationBtn) {
 }
 
 // ==========================================
-// ПОМЕНЯТЬ МЕСТАМИ АДРЕСА
+// ПОМЕНЯТЬ МЕСТАМИ
 // ==========================================
 if (swapBtn) {
     swapBtn.addEventListener("click", () => {
@@ -286,7 +287,7 @@ commentTags.forEach((tag) => {
     tag.addEventListener("click", () => {
         tag.classList.toggle("active");
         updateCommentFromTags();
-        updateEstimateDisplay(); // Пересчитываем цену при клике на детское кресло
+        updateEstimateDisplay();
     });
 });
 
@@ -360,7 +361,7 @@ function buildOrderText() {
 }
 
 // ==========================================
-// ОТПРАВКА ДАННЫХ В БОТА ЧЕРЕЗ TELEGRAM WEB APP
+// ОТПРАВКА ДАННЫХ В БОТА
 // ==========================================
 function sendOrderToBot() {
     if (!isFormValid() || sendingOrder) return;
@@ -402,7 +403,9 @@ function sendOrderToBot() {
 
 orderButton.addEventListener("click", sendOrderToBot);
 
-// Начальное состояние
+// ==========================================
+// СТАРТ ПРИЛОЖЕНИЯ
+// ==========================================
 setNow();
 updateOrderButton();
 updateEstimateDisplay();
